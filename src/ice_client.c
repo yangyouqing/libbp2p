@@ -23,7 +23,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <ev.h>
-#include "umqtt.h"
+#include "umqtt/umqtt.h"
 #include "ice_common.h"
 #include "bp2p_ice_api.h"
 #include "juice/juice.h"

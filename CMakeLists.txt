@@ -48,7 +48,7 @@ add_library(bice STATIC ${LIBBICE_SOURCES})
 #set_target_properties(bice PROPERTIES VERSION ${PROJECT_VERSION})
 
 set(LIBEV_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libev)
-set(LIBUMQTT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libumqtt/include/umqtt)
+set(LIBUMQTT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libumqtt/include)
 set(LIBJUICE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libjuice/include)
 set(LIBJUICE_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libjuice)
 #target_include_directories(bice PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -24,7 +24,7 @@
 
 
 #include <ev.h>
-#include "umqtt.h"
+#include "umqtt/umqtt.h"
 #include "ice_common.h"
 #include "juice/juice.h"
 #define BUFFER_SIZE 4096
