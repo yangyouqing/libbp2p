@@ -356,6 +356,8 @@ int ice_peer_init(ice_cfg_t *ice_cfg)
 	config2.cb_state_changed = on_state_changed2;
 	config2.cb_gathering_done = on_gathering_done2;
 	config2.cb_recv = on_recv2;
+    config2.cb_on_idle_running = ice_cfg->cb_on_idle_running;
+
 	config2.user_ptr = NULL;
 
 	// Use the same TURN server
@@ -365,7 +367,7 @@ int ice_peer_init(ice_cfg_t *ice_cfg)
 	// Port range example
 	config2.local_port_range_begin = 60000;
 	config2.local_port_range_end = 61000;
-
+    juice_set_log_level(JUICE_LOG_LEVEL_INFO);
 	agent2 = juice_create(&config2);
 
 	// Agent 1: Gather candidates
