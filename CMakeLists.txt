@@ -1,8 +1,8 @@
 cmake_minimum_required (VERSION 3.7)
-project (libbice
+project (libbp2p
 	VERSION 0.0.1
 	LANGUAGES C)
-set(PROJECT_DESCRIPTION "libbice is a UDP ICE library, include signalling channel")
+set(PROJECT_DESCRIPTION "libbp2p is a UDP ICE library, include signalling channel")
 set(CMAKE_C_FLAGS "-Wall -O0 -g ${CC_WARNING_FLAGS} ${CMAKE_C_FLAGS}")
 
 
@@ -32,7 +32,7 @@ set(LIBBICE_SOURCES
 )
 
 set(LIBBICE_HEADERS
-	${CMAKE_CURRENT_SOURCE_DIR}/include/libbice/bp2p_ice_api.h
+	${CMAKE_CURRENT_SOURCE_DIR}/include/libbp2p/bp2p_ice_api.h
 )
 
 #set(TESTS_SOURCES
@@ -44,24 +44,24 @@ set(LIBBICE_HEADERS
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-add_library(bice STATIC ${LIBBICE_SOURCES})
-#set_target_properties(bice PROPERTIES VERSION ${PROJECT_VERSION})
+add_library(bp2p STATIC ${LIBBICE_SOURCES})
+#set_target_properties(bp2p PROPERTIES VERSION ${PROJECT_VERSION})
 
 set(LIBEV_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libev)
 set(LIBUMQTT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libumqtt/include)
 set(LIBJUICE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libjuice/include)
 set(LIBJUICE_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libjuice)
-#target_include_directories(bice PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_include_directories(bice PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/libbice)
-#target_include_directories(bice PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_include_directories(bice PRIVATE ${LIBEV_INCLUDE_DIR})
-target_include_directories(bice PRIVATE ${LIBUMQTT_INCLUDE_DIR})
-target_include_directories(bice PRIVATE ${LIBJUICE_INCLUDE_DIR})
+#target_include_directories(bp2p PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(bp2p PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/libbp2p)
+#target_include_directories(bp2p PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_include_directories(bp2p PRIVATE ${LIBEV_INCLUDE_DIR})
+target_include_directories(bp2p PRIVATE ${LIBUMQTT_INCLUDE_DIR})
+target_include_directories(bp2p PRIVATE ${LIBJUICE_INCLUDE_DIR})
 
-target_link_libraries(bice PUBLIC Threads::Threads)
+target_link_libraries(bp2p PUBLIC Threads::Threads)
 
 
-install(TARGETS bice  DESTINATION lib)
+install(TARGETS bp2p  DESTINATION lib)
 install(FILES ${LIBBICE_HEADERS} DESTINATION include)
 
 
@@ -78,15 +78,15 @@ link_directories(p2pclient PRIVATE ${LIBEV_LIB_DIR} ${LIBUMQTT_LIB_DIR} ${LIBJUI
 # Samples
 # p2pclient
 add_executable(p2pclient ${CMAKE_CURRENT_SOURCE_DIR}/sample/p2pclient.c)
-target_include_directories(p2pclient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/libbice)
+target_include_directories(p2pclient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/libbp2p)
 target_include_directories(p2pclient PRIVATE ${LIBEV_INCLUDE_DIR})
 target_include_directories(p2pclient PRIVATE ${LIBUMQTT_INCLUDE_DIR})
-target_link_libraries(p2pclient bice juice ev umqtt)
+target_link_libraries(p2pclient bp2p juice ev umqtt)
 
 # p2ppeer
 add_executable(p2ppeer ${CMAKE_CURRENT_SOURCE_DIR}/sample/p2ppeer.c)
-target_include_directories(p2ppeer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/libbice)
+target_include_directories(p2ppeer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/libbp2p)
 target_include_directories(p2ppeer PRIVATE ${LIBEV_INCLUDE_DIR})
 target_include_directories(p2ppeer PRIVATE ${LIBUMQTT_INCLUDE_DIR})
-target_link_libraries(p2ppeer bice juice ev umqtt)
+target_link_libraries(p2ppeer bp2p juice ev umqtt)
 
