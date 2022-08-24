@@ -369,7 +369,7 @@ int ice_client_init(ice_cfg_t *ice_cfg)
 	config1.cb_state_changed = on_state_changed1;
 	config1.cb_gathering_done = on_gathering_done1;
 	config1.cb_recv = on_recv1;
-    config1.cb_on_idle_running = ice_cfg->cb_on_idle_running;
+//    config1.cb_on_idle_running = ice_cfg->cb_on_idle_running;
     
 	config1.user_ptr = NULL;
 	agent1 = juice_create(&config1);

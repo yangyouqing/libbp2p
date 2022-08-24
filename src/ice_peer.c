@@ -356,7 +356,7 @@ int ice_peer_init(ice_cfg_t *ice_cfg)
 	config2.cb_state_changed = on_state_changed2;
 	config2.cb_gathering_done = on_gathering_done2;
 	config2.cb_recv = on_recv2;
-    config2.cb_on_idle_running = ice_cfg->cb_on_idle_running;
+    //config2.cb_on_idle_running = ice_cfg->cb_on_idle_running;
 
 	config2.user_ptr = NULL;
 
