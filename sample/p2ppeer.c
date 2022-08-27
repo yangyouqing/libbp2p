@@ -22,9 +22,17 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 
-#include "bp2p_ice_api.h"
+#include "p2p_api.h"
 
 static struct ev_timer send_timer;
+static ice_status_t ice_status = ICE_STATUS_INIT;
+
+void sighandler(int signo)
+{
+    printf("recv signo=[%d]\n", signo);
+    if (signo == 2) {
+    }
+}    
 
 static void on_recv_pkt(void* pkt, int size, struct sockaddr* src, struct sockaddr* dest) 
 {   
@@ -46,19 +54,22 @@ static void on_recv_pkt(void* pkt, int size, struct sockaddr* src, struct sockad
 
 static void ice_on_status_change(ice_status_t s)
 {
-    static ice_status_t from = ICE_STATUS_INIT;
-    printf ("ICE status changed[%d->%d]", from, s);
-    from = s;
-//    if (ICE_STATUS_COMPLETE == s) {
-//        bp2p_ice_stop(&ice_cfg);
-//    }
+    printf ("ice_on_status_change ICE status changed[%d->%d]\n", ice_status, s);
+    ice_status = s;
+    
+    if (ICE_STATUS_COMPLETE == s) {
+
+    }
 }
 
 
 static void do_send(struct ev_loop *loop, struct ev_timer *w, int revents)
 {
+    if (ice_status != ICE_STATUS_COMPLETE) {
+        return;
+    }
     char *msg = "[from peer]......\n";
-    bp2p_ice_send(msg, strlen(msg) + 1);
+    p2p_send(msg, strlen(msg) + 1);
 }
 
 int main(int argc, char *argv[])
@@ -77,18 +88,22 @@ int main(int argc, char *argv[])
     ice_cfg.turn_fingerprint = 1;
     ice_cfg.cb_on_rx_pkt = on_recv_pkt;
     ice_cfg.cb_on_status_change = ice_on_status_change;
-    bp2p_ice_init (&ice_cfg);
+    ice_cfg.overtime = 2000;
+
+    p2p_start (&ice_cfg);
 
     ev_timer_init(&send_timer, do_send, 0.1, 0.0);
     ev_timer_set(&send_timer, 1, 1.0);
     ev_timer_start(ice_cfg.loop, &send_timer);
     
     ev_run(ice_cfg.loop, 0);
-//    bp2p_ice_start(&ice_cfg);
-//    while (1) {
-//        bp2p_ice_send("[from peer] ....\n", 0);
-//        sleep (1);
-//    }
+    
+    if (ice_status == ICE_STATUS_COMPLETE) {
+        printf ("got local ip/port: %s, %d, remote ip/port: %s, %d\n", 
+        ice_cfg.local_ip, ice_cfg.lport, ice_cfg.remote_ip, ice_cfg.rport);
+    } else {
+        printf ("p2p establish overtime\n");
+    }
     return 0;
 }
 

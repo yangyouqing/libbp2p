@@ -19,7 +19,7 @@
 #ifndef JUICE_ICE_COMMON_H
 #define JUICE_ICE_COMMON_H
 
-#include "bp2p_ice_api.h"
+#include "p2p_api.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,17 +55,6 @@ extern "C" {
 int open_nb_socket(const char* addr, const char* port);
 
 int make_publish_msg(char* buf, int max_buf_size, int msg_type, const char* msg);
-
-int ice_client_init(ice_cfg_t *ice_cfg);
-int ice_client_start_nego(ice_cfg_t *cfg);
-int ice_client_send_data(void *data, int len);
-int ice_client_get_valid_peer(struct sockaddr* dst);
-
-
-int ice_peer_init(ice_cfg_t *ice_cfg);
-int ice_peer_start_nego(ice_cfg_t *cfg);
-int ice_peer_send_data(void *data, int len);
-int ice_peer_get_valid_peer(struct sockaddr* dst);
 
 
 #ifdef __cplusplus

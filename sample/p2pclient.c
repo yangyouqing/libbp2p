@@ -20,12 +20,30 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 
-#include "bp2p_ice_api.h"
+#include "p2p_api.h"
 
 /*
  * And here's the main()
  */
 static struct ev_timer send_timer;
+static ice_status_t ice_status = ICE_STATUS_INIT;
+
+long long time_eclipse()
+{
+    static long long last = -1;
+
+    struct timeval t_now;
+    gettimeofday(&t_now, NULL);
+    long long now = ((long long)t_now.tv_sec) * 1000 + t_now.tv_usec / 1000;   
+
+    if (-1 == last) {
+        last = now;
+        return 0;
+    } else{
+        return now - last;
+    }
+    return -1;
+}
 
 static void on_recv_pkt(void * pkt, int size, struct sockaddr* src, struct sockaddr* dest) 
 {
@@ -44,10 +62,26 @@ static void on_recv_pkt(void * pkt, int size, struct sockaddr* src, struct socka
     printf ("%s, recv %d bytes from[%s:%d --> %s:%d]\n", __FILE__, size, src_addr, src_port, dst_addr, dst_port);
 }
 
+static void on_status_change(ice_status_t s)
+{
+    ice_status = s;
+    static ice_status_t from = ICE_STATUS_INIT;
+    printf ("ice_on_status_change ICE status changed[%d->%d]\n", from, s);
+    from = s;
+    
+    if (ICE_STATUS_COMPLETE == s) {
+        printf ("p2p conn establish time: %lld\n", time_eclipse());
+    }
+}
+
 static void do_send(struct ev_loop *loop, struct ev_timer *w, int revents)
 {
+    if (ice_status != ICE_STATUS_COMPLETE) {
+        return;
+    }
+
     char *msg = "[from client]......\n";
-    bp2p_ice_send(msg, strlen(msg) + 1);
+    p2p_send(msg, strlen(msg) + 1);
 }
 
 static void On_idle()
@@ -68,10 +102,14 @@ int main(int argc, char *argv[])
     ice_cfg.turn_username = "yyq";
     ice_cfg.turn_password = "yyq";
     ice_cfg.turn_fingerprint = 1;
+    ice_cfg.overtime = 5000;
     ice_cfg.cb_on_rx_pkt = on_recv_pkt;
     ice_cfg.cb_on_idle_running = On_idle;
+    ice_cfg.cb_on_status_change = on_status_change;
 
-    bp2p_ice_init (&ice_cfg);
+
+    time_eclipse();
+    p2p_start (&ice_cfg);
 
     ev_timer_init(&send_timer, do_send, 0.1, 0.0);
     ev_timer_set(&send_timer, 1, 1.0);
@@ -79,5 +117,11 @@ int main(int argc, char *argv[])
     
     ev_run(ice_cfg.loop, 0);
 
+    if (ice_status == ICE_STATUS_COMPLETE) {
+        printf ("got local ip/port: %s, %d, remote ip/port: %s, %d\n", 
+            ice_cfg.local_ip, ice_cfg.lport, ice_cfg.remote_ip, ice_cfg.rport);
+    } else {
+        printf ("p2p establish overtime\n");
+    }
     return 0;
 }

@@ -25,14 +25,16 @@ if(WIN32)
 endif()
 
 set(LIBBICE_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/src/bp2p_ice_api.c
+	${CMAKE_CURRENT_SOURCE_DIR}/src/p2p_api.c
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ice_client.c
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ice_peer.c
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ice_common.c
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ice_peer_signalling.c
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ice_client_signalling.c
 )
 
 set(LIBBICE_HEADERS
-	${CMAKE_CURRENT_SOURCE_DIR}/include/libbp2p/bp2p_ice_api.h
+	${CMAKE_CURRENT_SOURCE_DIR}/include/libbp2p/p2p_api.h
 )
 
 #set(TESTS_SOURCES
