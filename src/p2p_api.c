@@ -13,7 +13,7 @@ int p2p_start(ice_cfg_t *cfg)
 
     if (0 == strlen(cfg->my_channel)) {
         printf("ice channel is needed\n");
-        return 0;
+        return -1;
     }
     if (ICE_ROLE_CLIENT == cfg->role) {
         return ice_client_init(cfg);

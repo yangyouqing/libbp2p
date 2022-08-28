@@ -34,7 +34,7 @@
 juice_agent_t *agent;
 ice_cfg_t *g_ice_cfg = NULL;
 juice_state_t peer_status = JUICE_STATE_DISCONNECTED;   
-juice_state_t local_status = JUICE_STATE_DISCONNECTED; 
+static juice_state_t local_status = JUICE_STATE_DISCONNECTED; 
 static struct ev_timer reconnect_timer;  // conn to signing server
 
 static struct ev_timer counter_timer;    // calc eclipse time
@@ -95,7 +95,7 @@ static void signal_cb(struct ev_loop *loop, ev_signal *w, int revents)
 
 static void async_cb(EV_P_ ev_async *w, int revents)
 {
-    printf("async_cb\n");
+//    printf("async_cb\n");
 //    ev_break(g_ice_cfg->loop, EVBREAK_ALL);
 }
 
@@ -202,7 +202,14 @@ int ice_client_init(ice_cfg_t *ice_cfg)
     umqtt_log_info("libumqttc version %s\n", UMQTT_VERSION_STRING);
     ev_run(ice_cfg->loop, 0);
 
-    return 0;
+    if (JUICE_STATE_FAILED == peer_status) {
+        return 0;
+    } else if (JUICE_STATE_COMPLETED == peer_status) {
+        if (JUICE_STATE_COMPLETED == local_status) {
+            return 1;
+        }
+    }
+    return -1;
 }
 
 int ice_client_send_data(void *data, int len)

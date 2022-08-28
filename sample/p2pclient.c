@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 
 
     time_eclipse();
-    p2p_start (&ice_cfg);
+    int ret = p2p_start (&ice_cfg);
     time_eclipse();
 
 //    ev_timer_init(&send_timer, do_send, 0.1, 0.0);
@@ -102,9 +102,11 @@ int main(int argc, char *argv[])
 //    ev_timer_start(ice_cfg.loop, &send_timer);
     
 
-    if (ice_status == ICE_STATUS_COMPLETE) {
-        printf ("got local ip/port: %s, %d, remote ip/port: %s, %d\n", 
+    if (1 == ret) {
+        printf ("p2p establish succeed, got local ip/port: %s, %d, remote ip/port: %s, %d\n", 
             ice_cfg.local_ip, ice_cfg.lport, ice_cfg.remote_ip, ice_cfg.rport);
+    } else if (0 == ret){
+        printf ("p2p establish failed\n");
     } else {
         printf ("p2p establish overtime\n");
     }

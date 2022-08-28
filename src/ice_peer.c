@@ -32,11 +32,12 @@ ice_cfg_t *icepeer_cfg = NULL;
 juice_agent_t *agent = NULL;
 static struct ev_timer counter_timer;    // calc eclipse time
 static ev_async async_watcher;
-
+static juice_state_t local_status = JUICE_STATE_DISCONNECTED; 
 
 // Agent 2: on state changed
 static void on_state_changed(juice_agent_t *agent, juice_state_t state, void *user_ptr) {
 	printf("State 2: %s\n", juice_state_to_string(state));
+    local_status = state;
 	if (state == JUICE_STATE_CONNECTED) {
 		// Agent 2: on connected, send a message
 		//const char *message = "peer state connected";
@@ -120,7 +121,7 @@ static void signal_cb(struct ev_loop *loop, ev_signal *w, int revents)
 
 static void async_cb(EV_P_ ev_async *w, int revents)
 {
-    printf("async_cb\n");
+    printf("quit\n");
     ev_break(icepeer_cfg->loop, EVBREAK_ALL);
 }
 
@@ -198,6 +199,13 @@ int ice_peer_init(ice_cfg_t *ice_cfg)
 
     umqtt_log_info("libumqttc version %s\n", UMQTT_VERSION_STRING);
     ev_run(ice_cfg->loop, 0);
+
+    if (local_status == JUICE_STATE_COMPLETED) {
+        return 1;
+    } else if (local_status == JUICE_STATE_FAILED) {
+        return 0;
+    }
+    return -1;
 }
 
 
