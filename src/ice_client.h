@@ -14,5 +14,5 @@ int ice_client_get_valid_peer(struct sockaddr* dst);
 void ice_client_clear_signaling_info();
 int ice_client_conn_signalling_srv(struct ev_loop *loop, char *ip, unsigned short port);
 void ice_client_start_count_timer(struct ev_loop *loop);
-
+long long time_eclipse();
 #endif

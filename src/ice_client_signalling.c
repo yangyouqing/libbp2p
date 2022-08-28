@@ -51,6 +51,8 @@ static struct config cfg = {
 static void do_login(struct ev_loop *loop, struct ev_timer *w, int revents)
 {
     umqtt_log_info("login ...\n");
+    time_eclipse();
+
     if (NULL == cl) {
         umqtt_log_info("should connece mqtt server firstly\n");
         return ;
@@ -63,8 +65,7 @@ static void do_login(struct ev_loop *loop, struct ev_timer *w, int revents)
 
     int msg_type = JUICE_MQTT_MSG_TYPE_CONNECT_REQ;
     char send_buf[JUICE_MQTT_MSG_MAX_SIZE];
-    int send_len = 0;
-    send_len = make_publish_msg(send_buf, sizeof(send_buf), msg_type, g_ice_cfg->my_channel);
+    int send_len = make_publish_msg(send_buf, sizeof(send_buf), msg_type, g_ice_cfg->my_channel);
     cl->publish(cl, g_ice_cfg->peer_channel, send_buf, send_len, UMQTT_QOS0, false);
 }
 
@@ -72,8 +73,8 @@ static void do_login(struct ev_loop *loop, struct ev_timer *w, int revents)
 
 static void start_login(struct ev_loop *loop)
 {
-    ev_timer_init(&login_timer, do_login, 0.1, 0.0);
-    ev_timer_set(&login_timer, UMQTT_CLIENT_LOGIN_INTERVAL, 1.0);
+    ev_timer_init(&login_timer, do_login, 0.1, UMQTT_CLIENT_LOGIN_INTERVAL);
+//    ev_timer_set(&login_timer, UMQTT_CLIENT_LOGIN_INTERVAL, 1.0);
     ev_timer_start(loop, &login_timer);
 }
 
@@ -105,6 +106,7 @@ static void start_reconnect(struct ev_loop *loop)
 
 static void on_conack(struct umqtt_client *cl, bool sp, int code)
 {
+    time_eclipse();
     struct umqtt_topic topics[] = {
         {
             .topic = g_ice_cfg->my_channel,
@@ -144,11 +146,11 @@ static void on_conack(struct umqtt_client *cl, bool sp, int code)
 static void on_suback(struct umqtt_client *cl, uint8_t *granted_qos, int qos_count)
 {
     int i;
-
     printf("on_suback, qos(");
     for (i = 0; i < qos_count; i++)
         printf("%d ", granted_qos[i]);
     printf("\b)\n");
+    time_eclipse();
 }
 
 static void on_unsuback(struct umqtt_client *cl)
@@ -163,6 +165,7 @@ static void on_unsuback(struct umqtt_client *cl)
 static void on_publish(struct umqtt_client *cl, const char *topic, int topic_len,
     const void *payload, int payloadlen)
 {
+    time_eclipse();
     umqtt_log_info("on_publish: topic:[%.*s] payload:[%.*s]\n", topic_len, topic,
         payloadlen, (char *)payload);
 
@@ -187,8 +190,7 @@ static void on_publish(struct umqtt_client *cl, const char *topic, int topic_len
                 stop_login(cl->loop);
 
             	juice_get_local_description(agent, sdp, sizeof (sdp));
-	            printf("Local description :\n%s\n", sdp);
-
+	            //printf("Local description :\n%s\n", sdp);
                 
                 resp_msg_type = JUICE_MQTT_MSG_TYPE_SDP;
                 send_len = make_publish_msg(send_buf, sizeof(send_buf), resp_msg_type, sdp);
@@ -197,11 +199,7 @@ static void on_publish(struct umqtt_client *cl, const char *topic, int topic_len
             case JUICE_MQTT_MSG_TYPE_SDP:
                 juice_set_remote_description(agent, msg);
                 break;
-            case JUICE_MQTT_MSG_TYPE_CANDIDATE:
-                
-                break;
-            case JUICE_MQTT_MSG_TYPE_CANDIDATE_GATHER_DONE:
-                break;
+            
             default:
                 break;
         }
@@ -233,6 +231,7 @@ static void on_close(struct umqtt_client *cl)
 
 static void on_net_connected(struct umqtt_client *cl)
 {
+    time_eclipse();
     umqtt_log_info("on_net_connected\n");
 
     if (cl->connect(cl, &cfg.options) < 0) {
@@ -245,6 +244,7 @@ static void on_net_connected(struct umqtt_client *cl)
 
 static void do_connect(struct ev_loop *loop, struct ev_timer *w, int revents)
 {
+    time_eclipse();
     umqtt_log_info("Start connect...s\n");
 
     cl = umqtt_new(loop, cfg.host, cfg.port, cfg.ssl);
@@ -268,6 +268,7 @@ static void do_connect(struct ev_loop *loop, struct ev_timer *w, int revents)
 
 int ice_client_conn_signalling_srv(struct ev_loop *loop, char *ip, unsigned short port)
 {
+    time_eclipse();
     if (NULL != ip) {
         cfg.host = ip;
     }

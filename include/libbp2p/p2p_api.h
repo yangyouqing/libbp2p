@@ -51,12 +51,12 @@ typedef struct ice_cfg{
 int p2p_start(ice_cfg_t *cfg);
 
 // maybe not use
-int p2p_get_status();
+//int p2p_get_status();
 //int p2p_get_valid_localaddr(char *ip, unsigned int *port);
 //int p2p_get_valid_peeraddr(char *ip, unsigned int *port);
 //int p2p_get_valid_peer(struct sockaddr* peer);
-int p2p_send(void *data, int len);
-int p2p_get_elapsed_time(int *microsec);
+//int p2p_send(void *data, int len);
+//int p2p_get_elapsed_time(int *microsec);
 
 
 #ifdef __cplusplus

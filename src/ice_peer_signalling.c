@@ -186,7 +186,7 @@ static void on_publish(struct umqtt_client *cl, const char *topic, int topic_len
                 
 	            juice_get_local_description(agent, sdp, JUICE_MAX_SDP_STRING_LEN);
 	                            
-	            printf("Local description:\n%s\n", sdp);
+	           // printf("Local description:\n%s\n", sdp);
                 resp_msg_type = JUICE_MQTT_MSG_TYPE_SDP;
                 send_len = make_publish_msg(send_buf, sizeof(send_buf), resp_msg_type, sdp);
                 cl->publish(cl, peer_topic, send_buf, send_len, UMQTT_QOS0, false);
@@ -195,11 +195,8 @@ static void on_publish(struct umqtt_client *cl, const char *topic, int topic_len
 
                 juice_set_remote_description(agent, msg);
                 break;
-            case JUICE_MQTT_MSG_TYPE_CANDIDATE:
-                
-                break;
-            case JUICE_MQTT_MSG_TYPE_CANDIDATE_GATHER_DONE:
-                break;
+
+
             default:
                 break;
         }

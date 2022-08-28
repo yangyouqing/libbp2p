@@ -92,11 +92,10 @@ int main(int argc, char *argv[])
 
     p2p_start (&ice_cfg);
 
-    ev_timer_init(&send_timer, do_send, 0.1, 0.0);
-    ev_timer_set(&send_timer, 1, 1.0);
-    ev_timer_start(ice_cfg.loop, &send_timer);
+//    ev_timer_init(&send_timer, do_send, 0.1, 0.0);
+//    ev_timer_set(&send_timer, 1, 1.0);
+//    ev_timer_start(ice_cfg.loop, &send_timer);
     
-    ev_run(ice_cfg.loop, 0);
     
     if (ice_status == ICE_STATUS_COMPLETE) {
         printf ("got local ip/port: %s, %d, remote ip/port: %s, %d\n", 

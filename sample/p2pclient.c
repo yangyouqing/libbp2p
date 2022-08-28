@@ -28,22 +28,7 @@
 static struct ev_timer send_timer;
 static ice_status_t ice_status = ICE_STATUS_INIT;
 
-long long time_eclipse()
-{
-    static long long last = -1;
 
-    struct timeval t_now;
-    gettimeofday(&t_now, NULL);
-    long long now = ((long long)t_now.tv_sec) * 1000 + t_now.tv_usec / 1000;   
-
-    if (-1 == last) {
-        last = now;
-        return 0;
-    } else{
-        return now - last;
-    }
-    return -1;
-}
 
 static void on_recv_pkt(void * pkt, int size, struct sockaddr* src, struct sockaddr* dest) 
 {
@@ -103,19 +88,19 @@ int main(int argc, char *argv[])
     ice_cfg.turn_password = "yyq";
     ice_cfg.turn_fingerprint = 1;
     ice_cfg.overtime = 5000;
-    ice_cfg.cb_on_rx_pkt = on_recv_pkt;
-    ice_cfg.cb_on_idle_running = On_idle;
+//    ice_cfg.cb_on_rx_pkt = on_recv_pkt;
+//    ice_cfg.cb_on_idle_running = On_idle;
     ice_cfg.cb_on_status_change = on_status_change;
 
 
     time_eclipse();
     p2p_start (&ice_cfg);
+    time_eclipse();
 
-    ev_timer_init(&send_timer, do_send, 0.1, 0.0);
-    ev_timer_set(&send_timer, 1, 1.0);
-    ev_timer_start(ice_cfg.loop, &send_timer);
+//    ev_timer_init(&send_timer, do_send, 0.1, 0.0);
+//    ev_timer_set(&send_timer, 1, 1.0);
+//    ev_timer_start(ice_cfg.loop, &send_timer);
     
-    ev_run(ice_cfg.loop, 0);
 
     if (ice_status == ICE_STATUS_COMPLETE) {
         printf ("got local ip/port: %s, %d, remote ip/port: %s, %d\n", 

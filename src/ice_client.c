@@ -27,12 +27,14 @@
 #include "ice_common.h"
 #include "p2p_api.h"
 #include "juice/juice.h"
+#include "ice_client.h"
 
 #define BUFFER_SIZE 4096
 
 juice_agent_t *agent;
 ice_cfg_t *g_ice_cfg = NULL;
-
+juice_state_t peer_status = JUICE_STATE_DISCONNECTED;   
+juice_state_t local_status = JUICE_STATE_DISCONNECTED; 
 static struct ev_timer reconnect_timer;  // conn to signing server
 
 static struct ev_timer counter_timer;    // calc eclipse time
@@ -42,8 +44,33 @@ static ev_async async_watcher;
 
 static void do_overtime(struct ev_loop *loop, struct ev_timer *w, int revents)
 {
-    printf ("do_overtime\n");
+    static long long last = -1;
+    struct timeval t_now;
+    gettimeofday(&t_now, NULL);
+    long long now = ((long long)t_now.tv_sec) * 1000 + t_now.tv_usec / 1000; 
+    if (-1 == last) {
+        last = now;
+    }
 
+    if (JUICE_STATE_FAILED == peer_status) {
+        printf ("quit: peer failed\n");
+        goto LBL_EXIT;
+    } else if (JUICE_STATE_COMPLETED == peer_status) {
+        if (JUICE_STATE_COMPLETED == local_status) {
+            ice_client_get_valid_localaddr(g_ice_cfg->local_ip, &g_ice_cfg->lport);
+            ice_client_get_valid_peeraddr(g_ice_cfg->remote_ip, &g_ice_cfg->rport);
+            printf ("quit: local/peer completed\n");
+            goto LBL_EXIT;
+        }
+    }
+
+    if (now - last < g_ice_cfg->overtime) {
+        return;
+    }
+
+    printf ("quit: do_overtime\n");
+
+LBL_EXIT:
     ev_break(loop, EVBREAK_ALL);
     ice_client_clear_signaling_info();
 
@@ -69,28 +96,24 @@ static void signal_cb(struct ev_loop *loop, ev_signal *w, int revents)
 static void async_cb(EV_P_ ev_async *w, int revents)
 {
     printf("async_cb\n");
-    ev_break(g_ice_cfg->loop, EVBREAK_ALL);
+//    ev_break(g_ice_cfg->loop, EVBREAK_ALL);
 }
 
 // Agent 1: on state changed
 static void on_state_changed(juice_agent_t *agent, juice_state_t state, void *user_ptr) 
 {
 	printf("State 1: %s\n", juice_state_to_string(state));
-
+    local_status = state;
 	if (state == JUICE_STATE_CONNECTED) {
 		// Agent 1: on connected, send a message
 		const char *message = "Hello from 1";
 		juice_send(agent, message, strlen(message));
 	} else if (state == JUICE_STATE_COMPLETED) {
 	    printf ("ICE nego succeed\n");
-        ice_client_get_valid_localaddr(g_ice_cfg->local_ip, &g_ice_cfg->lport);
-        ice_client_get_valid_peeraddr(g_ice_cfg->remote_ip, &g_ice_cfg->rport);
-
-
 	   if (g_ice_cfg && g_ice_cfg->cb_on_status_change) {
             g_ice_cfg->cb_on_status_change(ICE_STATUS_COMPLETE);
        }
-       ev_async_send(g_ice_cfg->loop, &async_watcher);
+      // ev_async_send(g_ice_cfg->loop, &async_watcher);
 	}
 }
 
@@ -99,6 +122,7 @@ static void on_state_changed(juice_agent_t *agent, juice_state_t state, void *us
 // Agent 1: on local candidates gathering done
 static void on_gathering_done(juice_agent_t *agent, void *user_ptr) {
 	printf("Gathering done\n");
+    time_eclipse();
 
 	// Agent 1: Generate local description
 //	char sdp1[JUICE_MAX_SDP_STRING_LEN];
@@ -120,6 +144,9 @@ static void on_recv(juice_agent_t *agent, const char *data, size_t size, void *u
     struct sockaddr *src = NULL;
     struct sockaddr *dest = NULL;
     juice_get_selected_pair(agent, &src, &dest);
+    peer_status = JUICE_STATE_COMPLETED;
+    printf ("juice recv msg: %s\n", data);
+    time_eclipse();
     if (g_ice_cfg && g_ice_cfg->cb_on_rx_pkt && NULL != src && NULL != dest) {
         g_ice_cfg->cb_on_rx_pkt(data, (int)size, (struct sockaddr*)src, (struct sockaddr*)dest);
     }
@@ -156,7 +183,7 @@ int ice_client_init(ice_cfg_t *ice_cfg)
 	config.cb_gathering_done = on_gathering_done;
 	config.cb_recv = on_recv;
     
-	config.user_ptr = NULL;
+	config.user_ptr = (void*)0;
 	agent = juice_create(&config);
 	// Agent 1: Gather candidates
 	juice_gather_candidates(agent);
@@ -165,14 +192,16 @@ int ice_client_init(ice_cfg_t *ice_cfg)
 
     if (ice_cfg->overtime >= 0) {
         float overtime = ice_cfg->overtime / 1000;
-        ev_timer_init(&counter_timer, do_overtime, overtime, 0.0);
+        ev_timer_init(&counter_timer, do_overtime, 0, 0.001);
         ev_timer_start(loop, &counter_timer);
     }
     
-    ev_async_init(&async_watcher, async_cb);
-    ev_async_start(loop, &async_watcher);
+//    ev_async_init(&async_watcher, async_cb);
+//    ev_async_start(loop, &async_watcher);
 
     umqtt_log_info("libumqttc version %s\n", UMQTT_VERSION_STRING);
+    ev_run(ice_cfg->loop, 0);
+
     return 0;
 }
 
@@ -258,4 +287,22 @@ int ice_client_get_valid_peeraddr(char *ip, unsigned int *port)
 int ice_client_get_status()
 {
     return juice_get_state(agent);
+}
+
+long long time_eclipse()
+{
+    static long long last = -1;
+
+    struct timeval t_now;
+    gettimeofday(&t_now, NULL);
+    long long now = ((long long)t_now.tv_sec) * 1000 + t_now.tv_usec / 1000;   
+
+    if (-1 == last) {
+        last = now;
+        return 0;
+    } else{
+        printf ("time_eclipse: %lld\n", now - last);
+        return now - last;
+    }
+    return -1;
 }

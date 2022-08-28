@@ -39,10 +39,13 @@ static void on_state_changed(juice_agent_t *agent, juice_state_t state, void *us
 	printf("State 2: %s\n", juice_state_to_string(state));
 	if (state == JUICE_STATE_CONNECTED) {
 		// Agent 2: on connected, send a message
-		const char *message = "Hello from 2";
-		juice_send(agent, message, strlen(message));
+		//const char *message = "peer state connected";
+		//juice_send(agent, message, strlen(message));
 	} else if (state == JUICE_STATE_COMPLETED) {
-	    printf ("ICE nego succeed\n");
+	    printf ("ICE peer nego succeed\n");
+        const char *message = "peer state completed";
+		juice_send(agent, message, strlen(message));
+
         ice_peer_get_valid_localaddr(icepeer_cfg->local_ip, &icepeer_cfg->lport);
         ice_peer_get_valid_peeraddr(icepeer_cfg->remote_ip, &icepeer_cfg->rport);
 
@@ -177,6 +180,7 @@ int ice_peer_init(ice_cfg_t *ice_cfg)
 	config.local_port_range_begin = 60000;
 	config.local_port_range_end = 61000;
     juice_set_log_level(JUICE_LOG_LEVEL_INFO);
+    config.user_ptr = (void *)1;
 	agent = juice_create(&config);
 
 	// Agent 1: Gather candidates
@@ -193,6 +197,7 @@ int ice_peer_init(ice_cfg_t *ice_cfg)
     ev_async_start(loop, &async_watcher);
 
     umqtt_log_info("libumqttc version %s\n", UMQTT_VERSION_STRING);
+    ev_run(ice_cfg->loop, 0);
 }
 
 
